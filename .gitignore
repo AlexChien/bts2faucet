@@ -80,3 +80,5 @@ pickle-email-*.html
 
 config/secrets.yml
 scratch_book.sh
+config/deploy
+config/deploy.rb
