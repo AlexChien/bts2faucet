@@ -1,5 +1,6 @@
 class HomeController < ApplicationController
+  layout false
+
   def index
-    render :file => "public/index.html.home"
   end
 end
