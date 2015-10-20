@@ -1,21 +1,13 @@
 require 'rails/application'
 
 Rails.application.routes.draw do
-  if Rails.application.config.relative_url_root.blank?
-    namespace :api do
-      namespace :v1 do
-        resources :accounts, only: [:create]
+  get 'home/index'
 
-        match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
-      end
-    end
-  else
-    scope module: 'api' do
-      namespace :v1 do
-        resources :accounts, only: [:create]
+  namespace :api do
+    namespace :v1 do
+      resources :accounts, only: [:create]
 
-        match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
-      end
+      match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
     end
   end
 
@@ -32,7 +24,7 @@ Rails.application.routes.draw do
   # See how all your routes lay out with "rake routes".
 
   # You can have the root of your site routed with "root"
-  # root 'welcome#index'
+  root 'home#index'
 
   # Example of regular route:
   #   get 'products/:id' => 'catalog#view'
