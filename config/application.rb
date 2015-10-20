@@ -19,6 +19,7 @@ module Bts2faucet
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
+    config.autoload_paths += Dir["#{config.root}/lib/**/"]
 
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
@@ -30,5 +31,23 @@ module Bts2faucet
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
+
+    config.middleware.insert_before 0, "Rack::Cors", :debug => true, :logger => (-> { Rails.logger }) do
+      allow do
+        origins '*'
+
+        # resource '/api/v1/accounts',
+        # :headers => :any,
+        # :methods => [:post],
+        # :credentials => true,
+        # :max_age => 0
+
+        resource '*',
+        :headers => :any,
+        :methods => [:get, :post, :delete, :put, :patch, :options, :head],
+        :max_age => 0
+      end
+    end if Rails.env.development?
+
   end
 end

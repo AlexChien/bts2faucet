@@ -1,1 +1,8 @@
 zh-CN:
+  active_record:
+    errors:
+      messages:
+        premium_name_not_support: "不支持高级账户名，请加入横杠或半角句号，或者去除名称中的元音"
+        too_frequent: "注册过于频繁，请稍候再试。"
+        account_name_taken: "已经被使用"
+        unable_register_onchain: "无法注册账户，未指定的错误"
