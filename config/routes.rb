@@ -1,12 +1,31 @@
+require 'rails/application'
+
 Rails.application.routes.draw do
+  if Rails.application.config.relative_url_root.blank?
+    namespace :api do
+      namespace :v1 do
+        resources :accounts, only: [:create]
 
-  namespace :api do
-    namespace :v1 do
-      resources :accounts, only: [:create]
+        match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
+      end
+    end
+  else
+    scope module: 'api' do
+      namespace :v1 do
+        resources :accounts, only: [:create]
 
-      match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
+        match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
+      end
     end
   end
+
+  # namespace :api do
+  #   namespace :v1 do
+  #     resources :accounts, only: [:create]
+  #
+  #     match '/accounts', to: 'accounts#options', as: :accounts_options, via: :options
+  #   end
+  # end
 
 
   # The priority is based upon order of creation: first created -> highest priority.
