@@ -79,3 +79,4 @@ pickle-email-*.html
 .powenv
 
 config/secrets.yml
+scratch_book.sh
