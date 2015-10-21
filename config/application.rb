@@ -47,7 +47,7 @@ module Bts2faucet
         :methods => [:get, :post, :delete, :put, :patch, :options, :head],
         :max_age => 0
       end
-    end if Rails.env.development?
+    end
 
   end
 end

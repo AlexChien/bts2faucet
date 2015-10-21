@@ -19,6 +19,10 @@ class Api::V1::AccountsController < ApplicationController
     render status: :unprocessable_entity, json: { error: { base: [e.message] }}
   end
 
+  def options
+    head :ok
+  end
+
   def account_param
     params[:account].permit(:name, :owner_key, :active_key)
   end
