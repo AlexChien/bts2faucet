@@ -8,9 +8,14 @@ class Account < ActiveRecord::Base
 
   class Error < RuntimeError; end
 
-  def self.register(name, okey, akey, ip, register = nil, referer = nil)
+  def self.register(name, okey, akey, ip, referer = nil, register = nil)
     default_register = Rails.application.secrets[:bts]["register"]
     referer_percent  = Rails.application.secrets[:bts]["referer_percent"]
+
+    # if no referer set or referer does not exist on chain
+    if referer.blank? || account_available_on_chain?(referer)
+      referer = default_register
+    end
 
     account = Account.new(
       account_name: name.downcase,
@@ -18,7 +23,7 @@ class Account < ActiveRecord::Base
       active_key: akey,
       remote_ip: ip,
       register: default_register,
-      referer: referer || default_register,
+      referer: referer,
       referer_percent: referer_percent
     )
 
@@ -47,7 +52,7 @@ class Account < ActiveRecord::Base
   end
 
   def self.account_available_on_chain?(account_name)
-    Graphene::API.rpc.request('get_account', [account_name]).present?
+    !Graphene::API.rpc.request('get_account', [account_name])
 
   rescue Errno::ECONNREFUSED => e
     raise Errno::ECONNREFUSED

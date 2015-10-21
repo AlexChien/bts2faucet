@@ -10,7 +10,8 @@ class Api::V1::AccountsController < ApplicationController
       account_param[:name],
       account_param[:owner_key],
       account_param[:active_key],
-      request.remote_ip
+      request.remote_ip,
+      account_param[:referer]
     )
 
     render status: :created, json: {account: account_param.merge({accountid:nil}) }
@@ -24,6 +25,6 @@ class Api::V1::AccountsController < ApplicationController
   end
 
   def account_param
-    params[:account].permit(:name, :owner_key, :active_key)
+    params[:account].permit(:name, :owner_key, :active_key, :referer)
   end
 end
