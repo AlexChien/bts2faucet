@@ -2,6 +2,7 @@ class Account < ActiveRecord::Base
   validates_presence_of :account_name, :remote_ip, :owner_key, :active_key, :referer
 
   validate :reject_premium_account_name
+  validate :reject_dot_com_name
   validates :account_name, presence: true, uniqueness: true, format: /\A[a-z][a-z0-9\-\.]*[a-z0-9]\Z/
   validate :frequency_check
 
@@ -66,6 +67,12 @@ class Account < ActiveRecord::Base
     end
 
     errors[:base] << I18n.t('active_record.errors.messages.premium_name_not_support') unless valid
+  end
+
+  def reject_dot_com_name
+    if account_name =~ /\.com\Z/
+      errors[:base] << I18n.t('active_record.errors.messages.dot_com_name_not_support')
+    end
   end
 
   # same remote_ip must not register again within 10 minutes

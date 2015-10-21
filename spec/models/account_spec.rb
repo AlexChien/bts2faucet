@@ -11,6 +11,17 @@ RSpec.describe Account, type: :model do
       expect(account.errors.full_messages).to include(I18n.t("active_record.errors.messages.premium_name_not_support"))
     end
 
+    it 'abc.com suffix should be invalid' do
+      account.account_name = "abc-d.com"
+
+      expect(account.valid?).to be false
+      expect(account.errors.full_messages).to include(I18n.t("active_record.errors.messages.dot_com_name_not_support"))
+
+      # while this is ok
+      account.account_name = "a.comb"
+      expect(account.valid?).to be true
+    end
+
     it 'name contains dot or dash is valid' do
       %w(abc-de abc.de ab-c.de).each do |name|
         account.account_name = name

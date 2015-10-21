@@ -23,8 +23,9 @@ en:
   active_record:
     errors:
       messages:
-        premium_name_not_support: "Premium account name is not supported."
-        too_frequent: "Too frequent requests from same IP."
-        account_name_taken: "Already taken."
-        unable_register_onchain: "Unable to register on chain, unspecified exception."
-        network_down: "Network unreachable."
+        premium_name_not_support: "Premium account name is not supported"
+        too_frequent: "Too frequent requests from same IP"
+        account_name_taken: "Already taken"
+        unable_register_onchain: "Unable to register on chain, unspecified exception"
+        network_down: "Network unreachable"
+        dot_com_name_not_support: ".com account name is not supported"
