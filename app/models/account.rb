@@ -36,6 +36,8 @@ class Account < ActiveRecord::Base
       raise Error, I18n.t('active_record.errors.messages.unable_register_onchain')
     end
 
+  rescue Errno::ECONNREFUSED => e
+    raise Error, I18n.t('active_record.errors.messages.network_down')
   end
 
   def self.register_on_chain(account)
@@ -45,8 +47,11 @@ class Account < ActiveRecord::Base
 
   def self.account_available_on_chain?(account_name)
     Graphene::API.rpc.request('get_account', [account_name]).present?
+
+  rescue Errno::ECONNREFUSED => e
+    raise Errno::ECONNREFUSED
   rescue Exception => e
-    false
+    true
   end
 
   private

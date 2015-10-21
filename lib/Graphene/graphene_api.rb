@@ -72,6 +72,10 @@ module Graphene
           response = http.request(@req)
 
           result = JSON.parse(response.body)
+          # TODO: capture and throw proper errors
+          # is_locked: wallet locked exception
+          # rec && rec->name == account_name_or_id: account not found
+          # Insufficient Balance: insufficient balance
           if result['error']
             log "error: #{result['error']}"
             unless @ignore_errors

@@ -6,3 +6,4 @@ zh-CN:
         too_frequent: "注册过于频繁，请稍候再试。"
         account_name_taken: "已经被使用"
         unable_register_onchain: "无法注册账户，未指定的错误"
+        network_down: "无法连接到后台，可能正在维护，请稍候再试"

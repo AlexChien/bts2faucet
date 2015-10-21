@@ -27,3 +27,4 @@ en:
         too_frequent: "Too frequent requests from same IP."
         account_name_taken: "Already taken."
         unable_register_onchain: "Unable to register on chain, unspecified exception."
+        network_down: "Network unreachable."
