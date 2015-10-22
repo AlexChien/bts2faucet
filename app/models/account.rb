@@ -13,7 +13,7 @@ class Account < ActiveRecord::Base
     referer_percent  = Rails.application.secrets[:bts]["referer_percent"]
 
     # if no referer set or referer does not exist on chain
-    if referer.blank? || account_available_on_chain?(referer)
+    if referer.blank? || account_available_on_chain?(referer) || !is_premium_account?(referer)
       referer = default_register
     end
 
@@ -46,9 +46,36 @@ class Account < ActiveRecord::Base
     raise Error, I18n.t('active_record.errors.messages.network_down')
   end
 
+  # check if account is annual subscriber or lifetime account
+  def self.is_premium_account?(account)
+    membership = member_status(account)
+
+    membership == 'lifetime' || membership == 'annual'
+  end
+
+  # register account on chain
   def self.register_on_chain(account)
     Graphene::API.rpc.request('register_account',
       [account.account_name, account.owner_key, account.active_key, account.register, account.referer, account.referer_percent, true])
+  end
+
+  # get account's membership status
+  # @return lifetime, annual, basic or nil for un-existed account
+  def self.member_status(account)
+    acct = get_account_onchain(account)
+    return nil if acct.nil?
+
+    return 'lifetime' if acct["lifetime_referrer"] == acct["id"]
+
+    expiration_date = acct["membership_expiration_date"]
+    exp_time = begin
+      Time.parse expiration_date
+    rescue
+      Time.parse "1970-01-01T00:00:00"
+    end
+    now = Time.now
+
+    exp_time < now ? "basic" : "annual"
   end
 
   def self.account_available_on_chain?(account_name)
@@ -58,6 +85,12 @@ class Account < ActiveRecord::Base
     raise Errno::ECONNREFUSED
   rescue Exception => e
     true
+  end
+
+  def self.get_account_onchain(account_name)
+    Graphene::API.rpc.request('get_account', [account_name])
+  rescue Exception => e
+    nil
   end
 
   private
