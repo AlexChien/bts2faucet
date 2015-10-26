@@ -14,7 +14,7 @@ class RefererStat < ActiveRecord::Base
   end
 
   def self.update_stats(refresh_membership = false)
-    Accounts.where('membership != "lifetime"').map(&:update_membership!) if refresh_membership
+    Account.where('membership != "lifetime"').map(&:update_membership!) if refresh_membership
 
     Account.group(:referer, :membership).count(:id).each do |group, count|
       referer, membership = group
