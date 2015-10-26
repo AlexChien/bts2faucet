@@ -41,7 +41,7 @@ RSpec.describe Api::V1::AccountsController, type: :controller do
 
     end
 
-    it "frequency limit", :focus do
+    it "frequency limit" do
       create(:account, remote_ip: "0.0.0.0")
 
       @body[:account][:name] += "2"
