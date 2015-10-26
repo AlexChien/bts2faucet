@@ -54,4 +54,5 @@ RSpec.describe Account, type: :model do
       expect(account.valid?).to be true
     end
   end
+
 end

@@ -6,6 +6,10 @@ class Account < ActiveRecord::Base
   validates :account_name, presence: true, uniqueness: true, format: /\A[a-z][a-z0-9\-\.]*[a-z0-9]\Z/
   validate :frequency_check
 
+  belongs_to :stat, :class_name => "RefererStat", :foreign_key => "referer", :primary_key => "referer_name"
+
+  MEMBERSHIPS = %w(basic annual lifetime)
+
   class Error < RuntimeError; end
 
   def self.register(name, okey, akey, ip, referer = nil, register = nil)
@@ -47,8 +51,8 @@ class Account < ActiveRecord::Base
   end
 
   # check if account is annual subscriber or lifetime account
-  def self.is_premium_account?(account)
-    membership = member_status(account)
+  def self.is_premium_account?(account_name)
+    membership = member_status(account_name)
 
     membership == 'lifetime' || membership == 'annual'
   end
@@ -61,8 +65,8 @@ class Account < ActiveRecord::Base
 
   # get account's membership status
   # @return lifetime, annual, basic or nil for un-existed account
-  def self.member_status(account)
-    acct = get_account_onchain(account)
+  def self.member_status(account_name)
+    acct = get_account_onchain(account_name)
     return nil if acct.nil?
 
     return 'lifetime' if acct["lifetime_referrer"] == acct["id"]
@@ -92,6 +96,20 @@ class Account < ActiveRecord::Base
   rescue Exception => e
     nil
   end
+
+  def update_membership!
+    membership = Account.member_status(account_name)
+    self.update_attribute(:membership, membership) if !membership.nil? && self.membership != membership
+  end
+
+  # update account's current membership status
+  def self.update_membership!(account = nil)
+    accounts = account.nil? ? self.all : [account]
+    accounts.each do |account|
+      account.update_membership!
+    end
+  end
+
 
   private
 
