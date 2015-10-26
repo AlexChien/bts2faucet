@@ -35,6 +35,8 @@ gem 'simple_form'
 gem 'upmin-admin'
 
 gem 'rack-cors'
+
+gem "whenever"
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
