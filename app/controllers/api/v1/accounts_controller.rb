@@ -3,28 +3,41 @@ class Api::V1::AccountsController < ApplicationController
 
   respond_to :json
 
+  # register user account using faucet account
   def create
-    render status: :bad_request and return unless account_param
+    render status: :bad_request and return unless account_params
 
     account = Account.register(
-      account_param[:name],
-      account_param[:owner_key],
-      account_param[:active_key],
+      account_params[:name],
+      account_params[:owner_key],
+      account_params[:active_key],
       request.remote_ip,
-      account_param[:referer]
+      account_params[:referer]
     )
 
-    render status: :created, json: {account: account_param.merge({accountid:nil}) }
+    render status: :created, json: {account: account_params.merge({accountid:nil}) }
 
   rescue Exception => e
     render status: :unprocessable_entity, json: { error: { base: [e.message] }}
   end
 
-  def options
-    head :ok
+  # return account's referral stats
+  def referral_stats
+    account_name = stats_params[:id]
+    stat = RefererStat.where(referer_name: account_name).select(:basic, :annual, :lifetime).first
+    if stat
+      render status: :ok, json: {account: account_name, stats: stat}
+    else
+      render status: :not_found, json: { error: { base: ["not_found"] }}
+    end
   end
 
-  def account_param
-    params[:account].permit(:name, :owner_key, :active_key, :referer)
+  private
+  def account_params
+    params[:account].permit(:id, :name, :owner_key, :active_key, :referer)
+  end
+
+  def stats_params
+    params.permit(:id)
   end
 end

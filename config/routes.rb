@@ -5,8 +5,13 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :accounts, only: [:create]
-
+      resources :accounts, only: [:create] do
+        member do
+          # add this constaint to allow . within the param passed in
+          # http://stackoverflow.com/questions/5369654/why-do-routes-with-a-dot-in-a-parameter-fail-to-match
+          post :referral_stats, :constraints => { :id => /[^\/]+/ }
+        end
+      end
     end
   end
 
