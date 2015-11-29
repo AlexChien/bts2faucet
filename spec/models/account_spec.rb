@@ -55,4 +55,46 @@ RSpec.describe Account, type: :model do
     end
   end
 
+  context "referer_percentage", :focus do
+    let!(:baozou0) { create(:referer_stat, referer_name: "baozou0", start_percent: 30)}
+    let!(:baozou60) { create(:referer_stat, referer_name: "baozou60", lifetime: 60, start_percent: 30)}
+    let!(:user) { create(:referer_stat, referer_name: "user", lifetime: 0)}
+
+    it "new referer should get basic percent" do
+      expect(Account.calculate_referer_percent('newuser')).to eq Rails.application.secrets[:bts]["referer_percent"]
+    end
+
+    it "progress plan 0-5" do
+      user.lifetime = 3; user.save
+
+      expect(Account.calculate_referer_percent('user')).to eq 20
+    end
+
+    it "progress plan 6-20" do
+      user.lifetime = 20; user.save
+
+      expect(Account.calculate_referer_percent('user')).to eq 40
+    end
+
+    it "progress plan 21-50" do
+      user.lifetime = 21; user.save
+
+      expect(Account.calculate_referer_percent('user')).to eq 60
+    end
+
+    it "progress plan >50" do
+      user.lifetime = 70; user.save
+
+      expect(Account.calculate_referer_percent('user')).to eq 80
+    end
+
+
+    it "with start_percent set lm 0" do
+      expect(Account.calculate_referer_percent(baozou0.referer_name)).to eq 30
+    end
+
+    it "with start_percent set lm 60" do
+      expect(Account.calculate_referer_percent(baozou60.referer_name)).to eq 80
+    end
+  end
 end

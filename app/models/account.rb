@@ -14,12 +14,14 @@ class Account < ActiveRecord::Base
 
   def self.register(name, okey, akey, ip, referer = nil, register = nil)
     default_register = Rails.application.secrets[:bts]["register"]
-    referer_percent  = Rails.application.secrets[:bts]["referer_percent"]
 
     # if no referer set or referer does not exist on chain
     if referer.blank? || account_available_on_chain?(referer) || !is_premium_account?(referer)
       referer = default_register
     end
+
+    # check referer percentage
+    referer_percent = calculate_referer_percent(referer)
 
     account = Account.new(
       account_name: name.downcase,
@@ -112,6 +114,36 @@ class Account < ActiveRecord::Base
 
 
   private
+
+  # progress plan
+  #
+  # 升级数量  推荐人配比  注册人配比  网络收取配比
+  # 0-5      40%        40%        20%
+  # 6-20    50%        30%        20%
+  # 21-50    60%        20%        20%
+  # >51     70%        10%        20%
+  #
+  # referer can have a manually set start_percent value
+  # some opinion leader wants to have higher refer percentage to start
+  # it's suppported by setting a start_percent
+  # real percetage will be max(start_percent, LM_based_calculated_percent)
+  def self.calculate_referer_percent(referer_name)
+    stat = RefererStat.find_by_referer_name(referer_name)
+    start_percent = stat.try(:start_percent).to_i
+
+    lm_count = stat.try(:lifetime).to_i
+    calculated_percent = if lm_count <= 5
+      20
+    elsif lm_count <= 20
+      40
+    elsif lm_count <= 50
+      60
+    else
+      80
+    end
+
+    return [start_percent, calculated_percent, Rails.application.secrets[:bts]["referer_percent"]].max
+  end
 
   # account name should contain dash or dot
   # or contains no vowles
