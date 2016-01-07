@@ -34,7 +34,7 @@ class Api::V1::AccountsController < ApplicationController
 
   private
   def account_params
-    params[:account].permit(:id, :name, :owner_key, :active_key, :referer)
+    params[:account].permit(:id, :name, :owner_key, :active_key, :referer, :refcode, :memo_key)
   end
 
   def stats_params
