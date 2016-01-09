@@ -63,6 +63,16 @@ class Account < ActiveRecord::Base
   def self.register_on_chain(account)
     Graphene::API.rpc.request('register_account',
       [account.account_name, account.owner_key, account.active_key, account.register, account.referer, account.referer_percent, true])
+
+    sleep 1
+
+    # send some core
+    Graphene::API.rpc.request('transfer',
+      [account.register, account.account_name, 20000, 'CORE', '', true])
+
+    # send some cny
+    Graphene::API.rpc.request('transfer',
+      [account.register, account.account_name, 10000, 'CNY', '', true])
   end
 
   # get account's membership status
