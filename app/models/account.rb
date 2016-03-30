@@ -68,11 +68,11 @@ class Account < ActiveRecord::Base
 
     # send some core
     Graphene::API.rpc.request('transfer',
-      [account.register, account.account_name, 20000, 'CORE', '', true])
+      [account.register, account.account_name, 500, 'REX', '', true])
 
     # send some cny
-    Graphene::API.rpc.request('transfer',
-      [account.register, account.account_name, 10000, 'CNY', '', true])
+    # Graphene::API.rpc.request('transfer',
+    #   [account.register, account.account_name, 10000, 'CNY', '', true])
   end
 
   # get account's membership status
