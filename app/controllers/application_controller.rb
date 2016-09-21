@@ -7,8 +7,7 @@ class ApplicationController < ActionController::Base
 
   def network
     @network ||= if !!(request.host =~ /pls2faucet/)
-      # "pls2"
-      "bts"
+      "pls2"
     else
       "bts"
     end
