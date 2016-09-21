@@ -34,8 +34,6 @@ class Account < ActiveRecord::Base
       referer_percent: referer_percent
     )
 
-    binding.pry
-
     # check model validity
     raise Error, account.errors.full_messages unless account.valid?
 
