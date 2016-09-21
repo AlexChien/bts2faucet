@@ -16,10 +16,10 @@ class RefererStat < ActiveRecord::Base
   def self.update_stats(refresh_membership = false)
     Account.where('membership != "lifetime"').map(&:update_membership!) if refresh_membership
 
-    Account.group(:referer, :membership).count(:id).each do |group, count|
-      referer, membership = group
+    Account.group(:network, :referer, :membership).count(:id).each do |group, count|
+      network, referer, membership = group
 
-      rs = RefererStat.find_or_initialize_by(referer_name: referer)
+      rs = RefererStat.find_or_initialize_by(network: network, referer_name: referer)
       rs[membership.to_sym] = count
       rs.save
     end

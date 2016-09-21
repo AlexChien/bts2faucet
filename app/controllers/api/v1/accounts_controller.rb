@@ -8,11 +8,12 @@ class Api::V1::AccountsController < ApplicationController
     render status: :bad_request and return unless account_params
 
     account = Account.register(
+      network,
       account_params[:name],
       account_params[:owner_key],
       account_params[:active_key],
       request.remote_ip,
-      account_params[:referer]
+      account_params[:referrer] || account_params[:referer]
     )
 
     render status: :created, json: {account: account_params.merge({accountid:nil}) }
@@ -24,7 +25,7 @@ class Api::V1::AccountsController < ApplicationController
   # return account's referral stats
   def referral_stats
     account_name = stats_params[:id]
-    stat = RefererStat.where(referer_name: account_name).select(:basic, :annual, :lifetime).first
+    stat = RefererStat.where(network: network, referer_name: account_name).select(:basic, :annual, :lifetime).first
     if stat
       render status: :ok, json: {account: account_name, stats: stat}
     else
@@ -34,7 +35,7 @@ class Api::V1::AccountsController < ApplicationController
 
   private
   def account_params
-    params[:account].permit(:id, :name, :owner_key, :active_key, :referer, :refcode, :memo_key)
+    params[:account].permit(:id, :name, :owner_key, :active_key, :referrer, :referer, :refcode, :memo_key)
   end
 
   def stats_params

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151129093321) do
+ActiveRecord::Schema.define(version: 20160921163528) do
 
   create_table "accounts", force: :cascade do |t|
     t.string   "account_name",    limit: 255
@@ -24,9 +24,11 @@ ActiveRecord::Schema.define(version: 20151129093321) do
     t.datetime "updated_at",                                    null: false
     t.string   "register",        limit: 255
     t.string   "membership",      limit: 255, default: "basic"
+    t.string   "network",         limit: 255, default: "bts"
   end
 
   add_index "accounts", ["account_name"], name: "index_accounts_on_account_name", using: :btree
+  add_index "accounts", ["network", "account_name"], name: "index_accounts_on_network_and_account_name", using: :btree
   add_index "accounts", ["referer", "membership"], name: "index_accounts_on_referer_and_membership", using: :btree
   add_index "accounts", ["referer"], name: "index_accounts_on_referer", using: :btree
   add_index "accounts", ["remote_ip"], name: "index_accounts_on_remote_ip", using: :btree
@@ -36,11 +38,13 @@ ActiveRecord::Schema.define(version: 20151129093321) do
     t.integer  "lifetime",      limit: 4,   default: 0
     t.integer  "annual",        limit: 4,   default: 0
     t.integer  "basic",         limit: 4,   default: 0
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
     t.integer  "start_percent", limit: 4,   default: 0
+    t.string   "network",       limit: 255, default: "bts"
   end
 
+  add_index "referer_stats", ["network", "referer_name"], name: "index_referer_stats_on_network_and_referer_name", using: :btree
   add_index "referer_stats", ["referer_name"], name: "index_referer_stats_on_referer_name", using: :btree
 
 end

@@ -3,7 +3,7 @@ class Account < ActiveRecord::Base
 
   validate :reject_premium_account_name
   validate :reject_dot_com_name
-  validates :account_name, presence: true, uniqueness: true, format: /\A[a-z][a-z0-9\-\.]*[a-z0-9]\Z/
+  validates :account_name, presence: true, uniqueness: { scope: :network }, format: /\A[a-z][a-z0-9\-\.]*[a-z0-9]\Z/
   validate :frequency_check
 
   belongs_to :stat, :class_name => "RefererStat", :foreign_key => "referer", :primary_key => "referer_name"
@@ -12,8 +12,8 @@ class Account < ActiveRecord::Base
 
   class Error < RuntimeError; end
 
-  def self.register(name, okey, akey, ip, referer = nil, register = nil)
-    default_register = Rails.application.secrets[:bts]["register"]
+  def self.register(network, name, okey, akey, ip, referer = nil, register = nil)
+    default_register = Rails.application.secrets[network.to_sym]["register"]
 
     # if no referer set or referer does not exist on chain
     if referer.blank? || account_available_on_chain?(referer) || !is_premium_account?(referer)
@@ -21,9 +21,10 @@ class Account < ActiveRecord::Base
     end
 
     # check referer percentage
-    referer_percent = calculate_referer_percent(referer)
+    referer_percent = calculate_referer_percent(network, referer)
 
     account = Account.new(
+      network: network,
       account_name: name.downcase,
       owner_key: okey,
       active_key: akey,
@@ -33,14 +34,16 @@ class Account < ActiveRecord::Base
       referer_percent: referer_percent
     )
 
+    binding.pry
+
     # check model validity
     raise Error, account.errors.full_messages unless account.valid?
 
     # check if it's registered already
-    raise Error, I18n.t('active_record.errors.messages.account_name_taken') unless account_available_on_chain?(account.account_name)
+    raise Error, I18n.t('active_record.errors.messages.account_name_taken') unless account_available_on_chain?(network, account.account_name)
 
     begin
-      registered_account = register_on_chain(account)
+      registered_account = register_on_chain(network, account)
       account.save! if registered_account
 
       registered_account
@@ -53,22 +56,22 @@ class Account < ActiveRecord::Base
   end
 
   # check if account is annual subscriber or lifetime account
-  def self.is_premium_account?(account_name)
-    membership = member_status(account_name)
+  def self.is_premium_account?(network, account_name)
+    membership = member_status(network, account_name)
 
     membership == 'lifetime' || membership == 'annual'
   end
 
   # register account on chain
-  def self.register_on_chain(account)
-    Graphene::API.rpc.request('register_account',
+  def self.register_on_chain(network, account)
+    api(network).request('register_account',
       [account.account_name, account.owner_key, account.active_key, account.register, account.referer, account.referer_percent, true])
   end
 
   # get account's membership status
   # @return lifetime, annual, basic or nil for un-existed account
-  def self.member_status(account_name)
-    acct = get_account_onchain(account_name)
+  def self.member_status(network, account_name)
+    acct = get_account_onchain(network, account_name)
     return nil if acct.nil?
 
     return 'lifetime' if acct["lifetime_referrer"] == acct["id"]
@@ -84,8 +87,8 @@ class Account < ActiveRecord::Base
     exp_time < now ? "basic" : "annual"
   end
 
-  def self.account_available_on_chain?(account_name)
-    !Graphene::API.rpc.request('get_account', [account_name])
+  def self.account_available_on_chain?(network, account_name)
+    !api(network).request('get_account', [account_name])
 
   rescue Errno::ECONNREFUSED => e
     raise Errno::ECONNREFUSED
@@ -93,14 +96,14 @@ class Account < ActiveRecord::Base
     true
   end
 
-  def self.get_account_onchain(account_name)
-    Graphene::API.rpc.request('get_account', [account_name])
+  def self.get_account_onchain(network, account_name)
+    api(network).request('get_account', [account_name])
   rescue Exception => e
     nil
   end
 
   def update_membership!
-    membership = Account.member_status(account_name)
+    membership = Account.member_status(network, account_name)
     self.update_attribute(:membership, membership) if !membership.nil? && self.membership != membership
   end
 
@@ -127,7 +130,7 @@ class Account < ActiveRecord::Base
   # some opinion leader wants to have higher refer percentage to start
   # it's suppported by setting a start_percent
   # real percetage will be max(start_percent, LM_based_calculated_percent)
-  def self.calculate_referer_percent(referer_name)
+  def self.calculate_referer_percent(network, referer_name)
     stat = RefererStat.find_by_referer_name(referer_name)
     start_percent = stat.try(:start_percent).to_i
 
@@ -142,7 +145,7 @@ class Account < ActiveRecord::Base
       80
     end
 
-    return [start_percent, calculated_percent, Rails.application.secrets[:bts]["referer_percent"]].max
+    return [start_percent, calculated_percent, Rails.application.secrets[network.to_sym]["referer_percent"]].max
   end
 
   # account name should contain dash or dot
@@ -172,5 +175,9 @@ class Account < ActiveRecord::Base
     if (Time.now - last_reg.created_at) < Rails.application.secrets[:frequency_limit]
       errors[:base] << I18n.t('active_record.errors.messages.too_frequent')
     end
+  end
+
+  def self.api(network)
+    Graphene::Wrapper.send(network)
   end
 end

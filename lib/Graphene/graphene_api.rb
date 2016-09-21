@@ -3,8 +3,28 @@ require 'uri'
 require 'json'
 
 module Graphene
-  class API
+  class Wrapper
+    @@bts = nil
+    @@pls2 = nil
 
+    def self.bts=(instance)
+      @@bts = instance
+    end
+
+    def self.pls2=(instance)
+      @@pls2 = instance
+    end
+
+    def self.bts
+      @@bts
+    end
+
+    def self.pls2
+      @@pls2
+    end
+  end
+
+  class API
     @@rpc_instance = nil
 
     def self.init(host, port, username, password, options = nil)
